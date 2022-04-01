@@ -1,1 +1,6 @@
-#putting in a comment here so it gets pushed to Github
+<launch>
+    <node name="search_server" pkg="Team25" type="search_server.py" output="screen">
+    </node>
+    <node name="search_client" pkg="Team25" type="search_client.py" output="screen">
+    </node>
+</launch>
