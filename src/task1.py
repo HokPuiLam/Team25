@@ -1,5 +1,6 @@
-#not finished, just copied move_circle.py
 #!/usr/bin/env python3
+#not finished, just copied move_circle.py
+
 
 import rospy
 from geometry_msgs.msg import Twist
@@ -31,6 +32,14 @@ class Circle:
 
         self.ctrl_c = True
 
+    def print_odom_readings(self):
+        print(f"x={self.x:.2f} m, y={self.y:.2f} yaw={self.theta_z:.1f} degrees")
+
+
+    def zero_positionify(zero_x, zero_y, zero_z, curr_x, curr_y, curr_z):
+        x = curr_x - zero_x
+        y = curr_y - zero_y
+        z = curr_z - zero_z
     def main_loop(self):
         while not self.ctrl_c:
             # specify the radius of the circle:
