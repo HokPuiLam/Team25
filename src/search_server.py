@@ -1,44 +1,97 @@
 # Used for task 2
-#!/usr/bin/env python3
+#! /usr/bin/python3
 
+# Import the core Python modules for ROS and to implement ROS Actions:
 import rospy
-from geometry_msgs.msg import Twist
-from com2009_msgs.srv import SetBool, SetBoolResponse
+import actionlib
 
-service_name = "move_service"
+# Import all the necessary ROS message types:
+from com2009_msgs.msg import SearchFeedback, SearchResult, SearchAction, SearchGoal
 
-pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
-vel = Twist()
+# Import the tb3 modules from tb3.py
+from tb3 import Tb3Move, Tb3Odometry, Tb3LaserScan
 
-def callback_function(service_request):
+# Import some other useful Python Modules
+from math import sqrt, pow
+import numpy as np
 
-    service_response = SetBoolResponse()
+class SearchActionServer(object):
+    feedback = SearchFeedback() 
+    result = SearchResult()
 
-    if service_request.request_signal == True:
-        print(f"The '{service_name}' Server received a 'true' request and the robot will now move for 5 seconds...")
+    def __init__(self):
+        self.actionserver = actionlib.SimpleActionServer("/search_action_server", 
+            SearchAction, self.action_server_launcher, auto_start=False)
+        self.actionserver.start()
 
-        StartTime = rospy.get_rostime()
+        self.vel_controller = Tb3Move()
+        self.tb3_odom = Tb3Odometry()
+        self.tb3_lidar = Tb3LaserScan()
+    
+    def scan_callback(self, scan_data):
+        left_arc = scan_data.ranges[0:21]
+        right_arc = scan_data.ranges[-20:]
+        front_arc = np.array(left_arc[::-1] + right_arc[::-1])
+        self.min_distance = front_arc.min()
+        self.object_angle = self.arc_angles[np.argmin(front_arc)]
+    
+    def action_server_launcher(self, goal: SearchGoal):
+        r = rospy.Rate(10)
 
-        vel.linear.x = 0.1
-        pub.publish(vel)
+        success = True
+        if goal.fwd_velocity <= 0 or goal.fwd_velocity > 0.26:
+            print("Invalid velocity.  Select a value between 0 and 0.26 m/s.")
+            success = False
+        if goal.approach_distance <= 0.2:
+            print("Invalid approach distance: I'll crash!")
+            success = False
+        elif goal.approach_distance > 3.5:
+            print("Invalid approach distance: I can't measure that far.")
+            success = False
 
-        rospy.loginfo('Published the velocity command to /cmd_vel')
-        while (rospy.get_rostime().secs - StartTime.secs) < 5:
-            continue
+        if not success:
+            self.actionserver.set_aborted()
+            return
 
-        rospy.loginfo('5 seconds have elapsed, stopping the robot...')
+        print(f"Request to move at {goal.fwd_velocity:.3f}m/s "
+                f"and stop {goal.approach_distance:.2f}m "
+                f"infront of any obstacles")
 
-        vel.linear.x = 0.0
-        pub.publish(vel)
+        # Get the current robot odometry:
+        self.posx0 = self.tb3_odom.posx
+        self.posy0 = self.tb3_odom.posy
 
-        service_response.response_signal = True
-        service_response.response_message = "Request complete."
-    else:
-        service_response.response_signal = False
-        service_response.response_message = "Nothing happened, set request_signal to 'true' next time."
-    return service_response
+        print("The robot will start to move now...")
+        # set the robot velocity:
+        self.vel_controller.set_move_cmd(goal.fwd_velocity, 0.0)
+        
+        while self.tb3_lidar.min_distance > goal.approach_distance:
+            self.vel_controller.publish()
+            # check if there has been a request to cancel the action mid-way through:
+            if self.actionserver.is_preempt_requested():
+                rospy.loginfo("Cancelling the camera sweep.")
+                self.actionserver.set_preempted()
+                # stop the robot:
+                self.vel_controller.stop()
+                success = False
+                # exit the loop:
+                break
+            
+            self.distance = sqrt(pow(self.posx0 - self.tb3_odom.posx, 2) + pow(self.posy0 - self.tb3_odom.posy, 2))
+            # populate the feedback message and publish it:
+            self.feedback.current_distance_travelled = self.distance
+            self.actionserver.publish_feedback(self.feedback)
 
-rospy.init_node(f"{service_name}_server")
-my_service = rospy.Service(service_name, SetBool, callback_function)
-rospy.loginfo(f"the '{service_name}' Server is ready to be called...")
-rospy.spin()
+        if success:
+            rospy.loginfo("approach completed sucessfully.")
+            self.result.total_distance_travelled = self.distance
+            self.result.closest_object_distance = self.tb3_lidar.min_distance
+            self.result.closest_object_angle = self.tb3_lidar.closest_object_position
+
+            self.actionserver.set_succeeded(self.result)
+            self.vel_controller.stop()
+            
+if __name__ == '__main__':
+    rospy.init_node("search_action_server")
+    SearchActionServer()
+    rospy.spin()
