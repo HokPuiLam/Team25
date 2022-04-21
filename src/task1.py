@@ -34,9 +34,9 @@ class Circle:
     def main_loop(self):
         while not self.ctrl_c:
             # specify the radius of the circle:
-            path_rad = 0.5 # m
+            path_rad = 1 # m
             # linear velocity must be below 0.26m/s:
-            lin_vel = 0.1 # m/s
+            lin_vel = 0.2 # m/s
 
             self.vel_cmd.linear.x = lin_vel
             self.vel_cmd.angular.z = lin_vel / path_rad # rad/s
