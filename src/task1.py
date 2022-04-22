@@ -26,15 +26,20 @@ class Circle:
         self.y = pos_y
         self.theta_z = yaw 
 
-        # if self.startup:
-        #     self.startup = False
-        #     self.x0 = self.x
-        #     self.y0 = self.y
-        #     self.theta_z0 = self.theta_z
+        if self.startup:
+            self.startup = False
+            self.x0 = self.x
+            self.y0 = self.y
+            self.theta_z0 = self.theta_z
     def __init__(self):
         # When setting up the publisher, the "cmd_vel" topic needs to be specified
         # and the Twist message type needs to be provided
         node_name = "Task1"
+
+        self.startup = True 
+        self.got_start_data = False
+        self.got_all_data = False
+
         self.pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
         self.sub = rospy.Subscriber('odom', Odometry, self.callback_function)
         rospy.init_node(node_name, anonymous=True)
@@ -59,7 +64,7 @@ class Circle:
         self.ctrl_c = True
 
     def print_odom_readings(self):
-        print(f"x={self.x:.2f} m, y={self.y:.2f} yaw={self.theta_z:.1f} degrees")
+        print(f"x={self.x-self.x0:.2f} m, y={self.y-self.y0:.2f} yaw={self.theta_z-self.theta_z0:.1f} degrees")
 
     def zero_positionify(zero_x, zero_y, zero_z, curr_x, curr_y, curr_z):
         x = curr_x - zero_x
@@ -76,8 +81,8 @@ class Circle:
             self.vel_cmd.linear.x = lin_vel
             self.vel_cmd.angular.z = lin_vel / path_rad # rad/s
 
-            self.vel_cmd.linear.x = 0.0
-            self.vel_cmd.angular.z = 0.0
+            #self.vel_cmd.linear.x = 0.0
+            #self.vel_cmd.angular.z = 0.0
             self.print_odom_readings()
             self.pub.publish(self.vel_cmd)
             self.rate.sleep()
