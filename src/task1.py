@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-#not finished, just copied move_circle.py
-
 
 import rospy
 from geometry_msgs.msg import Twist
