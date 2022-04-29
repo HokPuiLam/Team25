@@ -1,53 +1,76 @@
 #!/usr/bin/env python3
-# ROS imports
+#not finished, just copied move_circle.py
+
+
 import rospy
-import numpy as np
-from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
-#from tf import transformations
-#from datetime import datetime
+from sensor_msgs.msg import LaserScan
+import numpy as np
 
-# Util imports
-import random
-import math
-import time
+class task3():
 
-wall_dist = 0.5             # Distance desired from the wall
-max_speed = 2.6             # Maximum speed of the robot on meters/seconds
-wall_tracked = 0
+    def __init__(self):
+        # When setting up the publisher, the "cmd_vel" topic needs to be specified
+        # and the Twist message type needs to be provided
+        self.pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
+        rospy.init_node('task3', anonymous=True)
+        self.rate = rospy.Rate(10) # hz
 
-def read_laser(self, lidar_data):
-    """
-    Read sensor messagens, and determine distance to each region. 
-    Manipulates the values measured by the sensor.
-    Callback function for the subscription to the published Laser Scan values.
-    """
-    
-    # Determination of minimum distances in each region
-    front = np.array(lidar_data.ranges[0:45] + lidar_data.ranges[314:359])
-    fleft = np.array(lidar_data.ranges[46:91])
-    left = np.array(lidar_data.ranges[92:137])
-    bleft = np.array(lidar_data.ranges[138:183])
-    bright = np.array(lidar_data.ranges[184:239])
-    right = np.array(lidar_data.ranges[240:285])
-    fright = np.array(lidar_data.ranges[286:313])
-    regions_ = {
-        'front':  min(front.min(), inf),
-        'fleft': min(fleft.min(), inf),
-        'left':  min(left.min(), inf),
-        'bleft':  min(bleft.min(), inf),
-        'bright':   min(bright.min(), inf),
-        'right':   min(right.min(), inf),
-        'fright':   min(fright.min(), inf),
-    }
 
-    dist_front = lidar_data.ranges[180]
-    msg = Twist()
-    if dist_front < wall_dist:
-        msg.linear.x = 0
-    elif dist_front < wall_dist*2:
-        msg.linear.x = 0.5*max_speed
-    else:
-        msg.linear.x = max_speed
-    #print 'Turn Left angular z, linear x %f - %f' % (msg.angular.z, msg.linear.x)
-    return msg
+        self.vel_cmd = Twist()
+        self.right_arc = np.zeros(360)
+        self.front_arc = np.zeros(360)
+        self.ctrl_c = False
+        self.lidar_subscriber = rospy.Subscriber('/scan', LaserScan, self.callback_lidar)
+        rospy.on_shutdown(self.shutdownhook)
+
+        rospy.loginfo("the 'move_circle' node is active...")
+
+    def shutdownhook(self):
+        self.vel_cmd.linear.x = 0.0 # m/s
+        self.vel_cmd.angular.z = 0.0 # rad/s
+
+        print("stopping the robot")
+
+        # publish to the /cmd_vel topic to make the robot stop
+        self.pub.publish(self.vel_cmd)
+
+        self.ctrl_c = True
+
+    def callback_lidar(self, lidar_data):
+        """Obtain a subset of the LaserScan.ranges array corresponding to a +/-10 degree arc in front of it.
+        Convert this subset to a numpy array to allow for more advanced processing."""
+
+        self.right_arc = np.array(lidar_data.ranges[270:300])
+        self.front_arc = np.array(lidar_data.ranges[-15:] + lidar_data.ranges[15:0])
+
+
+    def main_loop(self):
+        while not self.ctrl_c:
+            min_right = np.amin(self.right_arc)
+            min_front = np.amin(self.front_arc)
+            
+            if (min_front > 0.5):
+                self.vel_cmd.angular.z = 0
+                self.vel_cmd.linear.x = 0.15
+                self.pub.publish(self.vel_cmd)
+                print("front")
+            elif(min_right < 0.3):
+                self.vel_cmd.angular.z = 1.82
+                self.vel_cmd.linear.x = 0.13
+                self.pub.publish(self.vel_cmd)
+                print("left")
+            elif(min_right > 0.4):
+                self.vel_cmd.linear.x = 0.13
+                self.vel_cmd.angular.z = -1.82
+                self.pub.publish(self.vel_cmd)
+                print("right")
+
+            self.rate.sleep()
+
+if __name__ == '__main__':
+    vel_ctlr = task3()
+    try:
+        vel_ctlr.main_loop()
+    except rospy.ROSInterruptException:
+        pass
