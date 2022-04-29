@@ -73,7 +73,7 @@ class Circle:
             #     round = 0
             #     print("round 0")
             if(round == 0):
-                print("round 0")
+                #print("round 0")
 
                 path_rad = 0.5 # m
                 # linear velocity must be below 0.26m/s:
@@ -90,9 +90,9 @@ class Circle:
                 self.rate.sleep()
                 if(self.theta_z-self.theta_z0 >= -0.1 and self.theta_z-self.theta_z0 < 0.0):
                     round = 1
-                    print("test")
+                    #print("test")
             if(round == 1):
-                print("round 1")
+                #print("round 1")
                 path_rad = -0.5 # m
                 # linear velocity must be below 0.26m/s:
                 lin_vel = 0.2 # m/s
@@ -112,7 +112,7 @@ class Circle:
                 self.vel_cmd.linear.x = 0.0 # m/s
                 self.vel_cmd.angular.z = 0.0 # rad/s
 
-                print("stopping the robot")
+                #print("stopping the robot")
 
                 # publish to the /cmd_vel topic to make the robot stop
                 self.pub.publish(self.vel_cmd)
