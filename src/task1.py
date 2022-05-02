@@ -62,7 +62,7 @@ class Circle:
         self.ctrl_c = True
 
     def print_odom_readings(self):
-        print(f"x={self.x-self.x0:.4f} m, y={self.y-self.y0:.4f} yaw={self.theta_z-self.theta_z0:.4f} degrees")
+        print(f"x={self.x-self.x0:.2f} m, y={self.y-self.y0:.2f} m yaw={self.theta_z-self.theta_z0:.2f} degrees")
 
     def main_loop(self):
         status = ""
@@ -88,7 +88,7 @@ class Circle:
                 self.print_odom_readings()
                 self.pub.publish(self.vel_cmd)
                 self.rate.sleep()
-                if(self.theta_z-self.theta_z0 >= -0.1 and self.theta_z-self.theta_z0 < 0.0):
+                if(self.theta_z-self.theta_z0 >= -0.1 and self.theta_z-self.theta_z0 < -0.05):
                     round = 1
                     #print("test")
             if(round == 1):
@@ -106,7 +106,7 @@ class Circle:
                 self.print_odom_readings()
                 self.pub.publish(self.vel_cmd)
                 self.rate.sleep()
-                if(self.theta_z-self.theta_z0 >= 0.0 and self.theta_z-self.theta_z0 < 0.1):
+                if(self.theta_z-self.theta_z0 >= -0.01 and self.theta_z-self.theta_z0 < 0.1):
                     round = 2
             if(round == 2):
                 self.vel_cmd.linear.x = 0.0 # m/s
