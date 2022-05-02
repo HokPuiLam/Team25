@@ -62,7 +62,7 @@ class Circle:
         self.ctrl_c = True
 
     def print_odom_readings(self):
-        print(f"x={self.x-self.x0:.2f} m, y={self.y-self.y0:.2f} m yaw={self.theta_z-self.theta_z0:.2f} degrees")
+        print(f"x={self.x-self.x0:.2f} m, y={self.y-self.y0:.2f} yaw={self.theta_z-self.theta_z0:.2f} degrees")
 
     def main_loop(self):
         status = ""
