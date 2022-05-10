@@ -20,12 +20,12 @@ class task3():
         self.vel_cmd = Twist()
         self.right_arc = np.zeros(360)
         self.front_arc = np.zeros(360)
+        self.front_arc_for_reverse = np.zeros(360)
         self.ctrl_c = False
         self.lidar_subscriber = rospy.Subscriber('/scan', LaserScan, self.callback_lidar)
         rospy.on_shutdown(self.shutdownhook)
 
         rospy.loginfo("the 'move_circle' node is active...")
-
     def shutdownhook(self):
         self.vel_cmd.linear.x = 0.0 # m/s
         self.vel_cmd.angular.z = 0.0 # rad/s
@@ -45,28 +45,66 @@ class task3():
         self.front_arc = np.array(lidar_data.ranges[-15:] + lidar_data.ranges[15:0])
 
 
+
     def main_loop(self):
         while not self.ctrl_c:
             min_right = np.amin(self.right_arc)
             min_front = np.amin(self.front_arc)
-            
-            if (min_front > 0.5):
+            if (min_front > 0.45):
                 self.vel_cmd.angular.z = 0
-                self.vel_cmd.linear.x = 0.15
+                self.vel_cmd.linear.x = 0.13
                 self.pub.publish(self.vel_cmd)
                 print("front")
-            elif(min_right < 0.3):
-                self.vel_cmd.angular.z = 1.82
-                self.vel_cmd.linear.x = 0.13
-                self.pub.publish(self.vel_cmd)
-                print("left")
-            elif(min_right > 0.4):
-                self.vel_cmd.linear.x = 0.13
-                self.vel_cmd.angular.z = -1.82
-                self.pub.publish(self.vel_cmd)
-                print("right")
 
-            self.rate.sleep()
+            elif (min_front < 0.2):
+                self.vel_cmd.angular.z = 0.2
+                self.vel_cmd.linear.x = -0.13
+                self.pub.publish(self.vel_cmd)
+            else:
+
+                if(min_right < 0.3 and min_right < 0.4):
+                    self.vel_cmd.linear.x = 0.13
+                    self.vel_cmd.angular.z = 0.00
+                    self.pub.publish(self.vel_cmd)
+                    print("actual front")
+                elif (min_right < 0.3):
+                    self.vel_cmd.linear.x = 0.0
+                    self.vel_cmd.angular.z = 1.82
+                    self.pub.publish(self.vel_cmd)
+                    print("spin right")
+                elif(min_right > 0.4):
+                    self.vel_cmd.linear.x = 0.0
+                    self.vel_cmd.angular.z = -1.82
+                    self.pub.publish(self.vel_cmd) 
+                    print("spin left")
+            
+            # if (min_front < 0.45):
+            #     self.vel_cmd.angular.z = 0
+            #     self.vel_cmd.linear.x = 0
+            #     self.pub.publish(self.vel_cmd)
+            #     self.vel_cmd.angular.z = 1.50
+            #     self.pub.publish(self.vel_cmd)
+            # else:
+            #     print("min_right")
+            #     print(min_right)
+            #     if (min_right > 0.4 and min_right < 0.5):
+            #         self.vel_cmd.angular.z = 0
+            #         self.vel_cmd.linear.x = 0.15
+            #         self.pub.publish(self.vel_cmd)
+            #     elif(min_right < 0.4):
+            #         self.vel_cmd.angular.z = 0.9
+            #         self.vel_cmd.linear.x = 0.15
+            #         self.pub.publish(self.vel_cmd)
+                    
+            #         print("left")
+            #     elif(min_right > 0.5):
+            #         self.vel_cmd.linear.x = 0.15
+            #         self.vel_cmd.angular.z = -0.9
+            #         self.pub.publish(self.vel_cmd)
+            #         print(min_right)
+            #         print("right")
+            
+        self.rate.sleep()
 
 if __name__ == '__main__':
     vel_ctlr = task3()

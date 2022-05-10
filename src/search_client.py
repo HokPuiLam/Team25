@@ -1,5 +1,5 @@
-# Used for task 2
-#! /usr/bin/python3
+#!/usr/bin/env python3
+from time import sleep
 import rospy
 import actionlib
 
@@ -41,12 +41,12 @@ class action_client(object):
         self.client.send_goal(self.goal, feedback_cb=self.feedback_callback)
 
     def main(self):
-        self.send_goal(velocity = 0.1, approach = 0.5)
+        self.send_goal(velocity = 0.27, approach = 0.60)
         prempt = False
         while self.client.get_state() < 2:
             print(f"FEEDBACK: Currently travelled {self.distance:.3f} m, "
                     f"STATE: Current state code is {self.client.get_state()}")
-            if self.distance >= 2:
+            if self.distance >= 2000: #tweak
                 rospy.logwarn("Cancelling goal now...")
                 self.client.cancel_goal()
                 rospy.logwarn("Goal Cancelled")
@@ -65,6 +65,7 @@ class action_client(object):
                     f"at a location of {result.closest_object_angle:.3f} degrees")
 
 if __name__ == '__main__':
+    sleep(0.1)
     client_instance = action_client()
     try:
         client_instance.main()
