@@ -41,7 +41,7 @@ class Circle:
         self.pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
         self.sub = rospy.Subscriber('odom', Odometry, self.callback_function)
         rospy.init_node(node_name, anonymous=True)
-        self.rate = rospy.Rate(10) # hz
+        self.rate = rospy.Rate(1) # hz
 
         self.vel_cmd = Twist()
 
@@ -62,7 +62,7 @@ class Circle:
         self.ctrl_c = True
 
     def print_odom_readings(self):
-        print(f"x={self.x-self.x0:.2f} m, y={self.y-self.y0:.2f} yaw={self.theta_z-self.theta_z0:.2f} degrees")
+        print(f"x={self.x-self.x0:.2f} m, y={self.y-self.y0:.2f} m, yaw={(self.theta_z-self.theta_z0)*180/3.14159:.1f} degrees")
 
     def main_loop(self):
         status = ""
@@ -88,7 +88,7 @@ class Circle:
                 self.print_odom_readings()
                 self.pub.publish(self.vel_cmd)
                 self.rate.sleep()
-                if(self.theta_z-self.theta_z0 >= -0.1 and self.theta_z-self.theta_z0 < -0.05):
+                if(self.theta_z-self.theta_z0 >= -0.2 and self.theta_z-self.theta_z0 < -0.05):
                     round = 1
                     #print("test")
             if(round == 1):
@@ -106,7 +106,7 @@ class Circle:
                 self.print_odom_readings()
                 self.pub.publish(self.vel_cmd)
                 self.rate.sleep()
-                if(self.theta_z-self.theta_z0 >= -0.01 and self.theta_z-self.theta_z0 < 0.1):
+                if(self.theta_z-self.theta_z0 >= -0.2 and self.theta_z-self.theta_z0 < 0.2):
                     round = 2
             if(round == 2):
                 self.vel_cmd.linear.x = 0.0 # m/s
