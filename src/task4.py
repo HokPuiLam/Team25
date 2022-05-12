@@ -11,10 +11,12 @@ from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 
 # Import the tb3 modules (which needs to exist within the "week6_vision" package)
-from tb3 import Tb3Move
+from tb3 import Tb3Move, Tb3Odometry, Tb3LaserScan
 import numpy as np
 import math
 from math import sqrt, pow, pi
+from sensor_msgs.msg import LaserScan
+
 class colour_search(object):
 
     def __init__(self):
@@ -26,6 +28,18 @@ class colour_search(object):
         self.cvbridge_interface = CvBridge()
 
         self.robot_controller = Tb3Move()
+        self.tb3_odom = Tb3Odometry()
+        self.tb3_lidar = Tb3LaserScan()
+        self.lidar_subscriber = self.lidar_subscriber = rospy.Subscriber('/scan', LaserScan, self.scan_callback)
+
+        #zeroing robot pose
+        self.x0 = 0.0
+        self.y0 = 0.0
+
+        #zeroing lidar
+        self.front_min = 0
+        self.right_min = 0
+        self.left_min = 0
         self.turn_vel_fast = -0.5
         self.turn_vel_slow = -0.1
         self.robot_controller.set_move_cmd(0.0, self.turn_vel_fast)
@@ -42,12 +56,13 @@ class colour_search(object):
         self.m00_min = 100000
 
         # Thresholds for ["Blue", "Red", "Green", "Turquoise"]
-        self.turn = False
+        self.search = False
         self.color = ""
         self.lower = []
         self.upper = []
         self.mask = np.zeros((1080,1920,1), np.uint8)
         self.hsv_img = np.zeros((1080,1920,3), np.uint8)
+
         # self.mask = np.zeros((1080,1920,1), np.uint8)
         # self.hsv_img = np.zeros((1080,1920,3), np.uint8)
         # self.lower = [(115, 224, 100), (0, 185, 100), (25, 150, 100), (75, 150, 100)]
@@ -111,12 +126,107 @@ class colour_search(object):
     #     self.robot_controller.publish()
     #     rospy.sleep(5)
     #     self.robot_controller.stop()
+    def scan_callback(self, scan_data):
+        f_left_arc = scan_data.ranges[0:27]
+        f_right_arc = scan_data.ranges[-27:]
+        right_arc = np.array(scan_data.ranges[320:350])
+        left_arc = np.array(scan_data.ranges[20:50])
+        front_arc = np.array(f_left_arc[::-1] + f_right_arc[::-1])
+        self.front_min = np.amin(front_arc)
+        self.right_min = np.amin(right_arc)
+        self.left_min = np.amin(left_arc)
 
     def rotate(self):
         self.robot_controller.set_move_cmd(0.0, self.turn_vel_slow)   
         self.robot_controller.publish()
 
+    def move_around(self):
+                # Get the current robot odometry:
+        self.posx0 = self.tb3_odom.posx
+        self.posy0 = self.tb3_odom.posy
 
+        print("The robot will start to move now...")
+        # set the robot velocity:
+        while True:
+            #front is clear
+            print(0.6000000238418579)
+            if self.front_min > 0.6000000238418579:
+                
+                # #both sides are clear, wiggle for more responsiveness
+                if self.right_min > 0.6000000238418579 and self.left_min > 0.6000000238418579:
+                    self.robot_controller.set_move_cmd(0.26, 0.70)
+                    self.robot_controller.publish()
+                    self.robot_controller.stop()
+                    self.robot_controller.set_move_cmd(0.26, -0.70)
+                    self.robot_controller.publish()
+                    print("all clear")
+
+                #but right isn't clear
+                if self.right_min < 0.6000000238418579 and self.left_min > 0.6000000238418579:
+                    self.robot_controller.stop()
+                    self.robot_controller.set_move_cmd(0.26, 1)
+                    self.robot_controller.publish()
+                    print("right not clear")
+
+                #but left isn't clear
+                elif self.right_min > 0.6000000238418579 and self.left_min < 0.6000000238418579:
+                    self.robot_controller.stop()
+                    self.robot_controller.set_move_cmd(0.26, 1)
+                    self.robot_controller.publish()
+                    print("left not clear")
+
+                #both sides are not clear
+                else:
+                    self.robot_controller.set_move_cmd(0.26, 0)
+                    self.robot_controller.publish()
+                    print("only front clear")
+
+            #front is not clear
+            else:
+                #but both sides are clear
+                if self.right_min > 0.6000000238418579 and self.left_min > 0.6000000238418579:
+                    #and left side is closer to an obstacle, reverse and spin right
+                    if self.right_min > self.left_min:
+                        self.robot_controller.stop()
+                        self.robot_controller.set_move_cmd(-0.1, -1)
+                        self.robot_controller.publish()
+                        print("front not clear")
+                    #else, reverse and spin left
+                    else:
+                        self.robot_controller.stop()
+                        self.robot_controller.set_move_cmd(-0.1, 1)
+                        self.robot_controller.publish()
+                        print("front not clear")
+
+                #but the left isn't clear, so spin right
+                elif self.right_min > 0.6000000238418579 and self.left_min < 0.6000000238418579:
+                    self.robot_controller.stop()
+                    self.robot_controller.set_move_cmd(0, -1)
+                    self.robot_controller.publish()
+                    print("front left not clear")
+                
+                #but the right isn't clear, so spin left
+                elif self.right_min < 0.6000000238418579 and self.left_min > 0.6000000238418579:
+                    self.robot_controller.stop()
+                    self.robot_controller.set_move_cmd(0, 1)
+                    self.robot_controller.publish()
+                    print("front right not clear")
+
+                #but no sides are clear
+                else:
+                    #and left side is closer to an obstacle, spin right
+                    if self.right_min > self.left_min:
+                        self.robot_controller.stop()
+                        self.robot_controller.set_move_cmd(0, -1.82)
+                        self.robot_controller.publish()
+                        print("not clear")
+                        
+                    #and right side is closer to an obstacle, spin left
+                    else:
+                        self.robot_controller.stop()
+                        self.robot_controller.set_move_cmd(0, 1.82)
+                        self.robot_controller.publish()
+                        print("not clear")
 
     def init_color(self):
         # Thresholds for ["Blue", "Red", "Green", "Turquoise"]
@@ -138,7 +248,8 @@ class colour_search(object):
                 self.lower = lower
                 self.upper = upper
                 print("SEARCH INITIATED: The target beacon colour is {}.".format (self.color))
-                self.turn = True
+                print("self search true")
+                self.search = True
                 break
 
 
@@ -147,21 +258,16 @@ class colour_search(object):
 
     def main(self):
         while not self.ctrl_c:
-            # if self.turn == False:
-            #     self.rotate(100, 0.6)
-            #     self.init_color()
-            #     self.rotate(100, -0.6)
-            #     self.go_foward()
-            #     self.rotate(110, 0.6)
-            #     self.turn = True
-            # else:
-            if self.turn == False:
-                print("self turn false")
+
+            if self.search == False:
+                print("self search false")
                 self.rotate()
                 self.init_color()
             else:
-                print("self turn true")
-                self.ctrl_c = True
+                #print("self turn true")
+                self.move_around()
+                #self.ctrl_c = True
+
             # if self.m00 > self.m00_min:
             #     # blob detected
             #     if self.cy >= 560-100 and self.cy <= 560+100:

@@ -79,6 +79,7 @@ class SearchActionServer(object):
         # set the robot velocity:
         while True:
             #front is clear
+            print(goal.approach_distance)
             if self.front_min > goal.approach_distance:
                 
                 # #both sides are clear, wiggle for more responsiveness
