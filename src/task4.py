@@ -149,7 +149,7 @@ class colour_search(object):
         # set the robot velocity:
         while True:
             #front is clear
-            print(0.6000000238418579)
+            #print(0.6000000238418579)
             if self.front_min > 0.6000000238418579:
                 
                 # #both sides are clear, wiggle for more responsiveness
@@ -159,27 +159,27 @@ class colour_search(object):
                     self.robot_controller.stop()
                     self.robot_controller.set_move_cmd(0.26, -0.70)
                     self.robot_controller.publish()
-                    print("all clear")
+                    #print("all clear")
 
                 #but right isn't clear
                 if self.right_min < 0.6000000238418579 and self.left_min > 0.6000000238418579:
                     self.robot_controller.stop()
                     self.robot_controller.set_move_cmd(0.26, 1)
                     self.robot_controller.publish()
-                    print("right not clear")
+                    #print("right not clear")
 
                 #but left isn't clear
                 elif self.right_min > 0.6000000238418579 and self.left_min < 0.6000000238418579:
                     self.robot_controller.stop()
                     self.robot_controller.set_move_cmd(0.26, 1)
                     self.robot_controller.publish()
-                    print("left not clear")
+                    #print("left not clear")
 
                 #both sides are not clear
                 else:
                     self.robot_controller.set_move_cmd(0.26, 0)
                     self.robot_controller.publish()
-                    print("only front clear")
+                    #print("only front clear")
 
             #front is not clear
             else:
@@ -190,27 +190,27 @@ class colour_search(object):
                         self.robot_controller.stop()
                         self.robot_controller.set_move_cmd(-0.1, -1)
                         self.robot_controller.publish()
-                        print("front not clear")
+                        #print("front not clear")
                     #else, reverse and spin left
                     else:
                         self.robot_controller.stop()
                         self.robot_controller.set_move_cmd(-0.1, 1)
                         self.robot_controller.publish()
-                        print("front not clear")
+                        #print("front not clear")
 
                 #but the left isn't clear, so spin right
                 elif self.right_min > 0.6000000238418579 and self.left_min < 0.6000000238418579:
                     self.robot_controller.stop()
                     self.robot_controller.set_move_cmd(0, -1)
                     self.robot_controller.publish()
-                    print("front left not clear")
+                    #print("front left not clear")
                 
                 #but the right isn't clear, so spin left
                 elif self.right_min < 0.6000000238418579 and self.left_min > 0.6000000238418579:
                     self.robot_controller.stop()
                     self.robot_controller.set_move_cmd(0, 1)
                     self.robot_controller.publish()
-                    print("front right not clear")
+                    #print("front right not clear")
 
                 #but no sides are clear
                 else:
@@ -219,14 +219,14 @@ class colour_search(object):
                         self.robot_controller.stop()
                         self.robot_controller.set_move_cmd(0, -1.82)
                         self.robot_controller.publish()
-                        print("not clear")
+                        #print("not clear")
                         
                     #and right side is closer to an obstacle, spin left
                     else:
                         self.robot_controller.stop()
                         self.robot_controller.set_move_cmd(0, 1.82)
                         self.robot_controller.publish()
-                        print("not clear")
+                        #print("not clear")
 
     def init_color(self):
         # Thresholds for ["Blue", "Red", "Green", "Turquoise"]
