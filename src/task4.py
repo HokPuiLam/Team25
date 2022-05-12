@@ -150,6 +150,8 @@ class colour_search(object):
         while True:
             #front is clear
             #print(0.6000000238418579)
+            #print(self.color)
+            #self.init_color()
             if self.front_min > 0.6000000238418579:
                 
                 # #both sides are clear, wiggle for more responsiveness
