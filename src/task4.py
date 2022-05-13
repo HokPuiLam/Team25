@@ -57,6 +57,7 @@ class colour_search(object):
 
         # Thresholds for ["Blue", "Red", "Green", "Turquoise"]
         self.search = False
+        self.detected = False
         self.color = ""
         self.lower = []
         self.upper = []
@@ -137,8 +138,10 @@ class colour_search(object):
         self.left_min = np.amin(left_arc)
 
     def rotate(self):
-        self.robot_controller.set_move_cmd(0.0, self.turn_vel_slow)   
+        self.robot_controller.set_move_cmd(0.0, -0.5)   
         self.robot_controller.publish()
+        rospy.sleep(3)
+        self.robot_controller.stop()
 
     def move_around(self):
                 # Get the current robot odometry:
@@ -152,6 +155,8 @@ class colour_search(object):
             #print(0.6000000238418579)
             #print(self.color)
             #self.init_color()
+            # if self.detected_beacon() == True:
+            #     break
             if self.front_min > 0.6000000238418579:
                 
                 # #both sides are clear, wiggle for more responsiveness
@@ -229,7 +234,6 @@ class colour_search(object):
                         self.robot_controller.set_move_cmd(0, 1.82)
                         self.robot_controller.publish()
                         #print("not clear")
-
     def init_color(self):
         # Thresholds for ["Blue", "Red", "Green", "Turquoise"]
         # self.lower = [(115, 224, 100), (0, 185, 100), (25, 150, 100), (75, 150, 100)]
@@ -250,26 +254,55 @@ class colour_search(object):
                 self.lower = lower
                 self.upper = upper
                 print("SEARCH INITIATED: The target beacon colour is {}.".format (self.color))
-                print("self search true")
+                #print("self search true")
                 self.search = True
+                #print(self.search)
                 break
 
+    def detected_beacon(self):
+        color_threshold = {
+            "Blue": [(115, 224, 100), (130, 255, 255)],
+            "Red": [(0, 185, 100), (10, 255, 255)],
+            "Green": [(25, 150, 100), (70, 255, 255)],
+            "Turquoise": [(75, 150, 100), (100, 255, 255)]
+        }
 
-
+        for colorname, (lower, upper) in color_threshold.items():
+            lower = np.array(lower)
+            upper = np.array(upper)
+            mask = cv2.inRange(self.hsv_img, lower, upper)
+            if mask.any():
+                print("TARGET DETECTED: Beaconing initiated.{}.".format (colorname))
+                self.detected == True
+                self.robot_controller.stop()
+                #print(self.detected)
+                return True
+                break
 
 
     def main(self):
         while not self.ctrl_c:
-
+            if self.detected == True:
+                    #print("stop")
+                print("detected")
+                self.robot_controller.stop()
+                self.shutdown_ops()
+                self.ctrl_c == True
             if self.search == False:
                 print("self search false")
                 self.rotate()
                 self.init_color()
-            else:
+                self.robot_controller.stop()
+            if self.search == True:
                 #print("self turn true")
+                #print('fast')
                 self.move_around()
                 #self.ctrl_c = True
 
+            # if self.move_rate == 'fast':
+            #     self.move_around()
+            # elif self.move_rate == 'stop':
+            #     self.robot_controller.stop()
             # if self.m00 > self.m00_min:
             #     # blob detected
             #     if self.cy >= 560-100 and self.cy <= 560+100:
