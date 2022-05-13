@@ -137,10 +137,18 @@ class colour_search(object):
         self.right_min = np.amin(right_arc)
         self.left_min = np.amin(left_arc)
 
-    def rotate(self):
+    def rotate_right(self):
+        print('rotate right')
         self.robot_controller.set_move_cmd(0.0, -0.5)   
         self.robot_controller.publish()
-        rospy.sleep(3)
+        rospy.sleep(3.2)
+        self.robot_controller.stop()
+
+    def rotate_left(self):
+        print('rotate left')
+        self.robot_controller.set_move_cmd(0.0, 0.5)   
+        self.robot_controller.publish()
+        rospy.sleep(3.2)
         self.robot_controller.stop()
 
     def move_around(self):
@@ -282,22 +290,23 @@ class colour_search(object):
 
     def main(self):
         while not self.ctrl_c:
-            if self.detected == True:
-                    #print("stop")
-                print("detected")
-                self.robot_controller.stop()
-                self.shutdown_ops()
-                self.ctrl_c == True
-            if self.search == False:
-                print("self search false")
-                self.rotate()
-                self.init_color()
-                self.robot_controller.stop()
-            if self.search == True:
-                #print("self turn true")
-                #print('fast')
-                self.move_around()
-                #self.ctrl_c = True
+            # if self.detected == True:
+            #         #print("stop")
+            #     print("detected")
+            #     self.robot_controller.stop()
+            #     self.shutdown_ops()
+            #     self.ctrl_c == True
+            # if self.search == False:
+            #     rospy.sleep(1)
+            #     self.rotate_right()
+            #     self.init_color()
+            #     self.rotate_left()
+            #     self.robot_controller.stop()
+            # if self.search == True:
+            #     #print("self turn true")
+            #     #print('fast')
+            #     self.move_around()
+            #     #self.ctrl_c = True
 
             # if self.move_rate == 'fast':
             #     self.move_around()
@@ -313,7 +322,35 @@ class colour_search(object):
             #         self.move_rate = "slow"
             # else:
             #     self.move_rate = "fast"
-                
+            if self.stop_counter > 0:
+                self.stop_counter -= 1
+
+            if self.m00 > self.m00_min:
+                # blob detected
+                if self.cy >= 560-100 and self.cy <= 560+100:
+                    if self.move_rate == 'slow':
+                        self.move_rate = 'stop'
+                        self.stop_counter = 30
+                else:
+                    self.move_rate = 'slow'
+            else:
+                self.move_rate = 'fast'
+
+            if self.move_rate == 'fast':
+                print("MOVING FAST: I can't see anything at the moment, scanning the area...")
+                self.robot_controller.set_move_cmd(0.0, self.turn_vel_fast)
+            elif self.move_rate == 'slow':
+                print(f"MOVING SLOW: A blob of colour of size {self.m00:.0f} pixels is in view at y-position: {self.cy:.0f} pixels.")
+                self.robot_controller.set_move_cmd(0.0, self.turn_vel_slow)
+            elif self.move_rate == 'stop' and self.stop_counter > 0:
+                print(f"STOPPED: The blob of colour is now dead-ahead at y-position {self.cy:.0f} pixels... Counting down: {self.stop_counter}")
+                self.robot_controller.set_move_cmd(0.0, 0.0)
+            else:
+                print(f"MOVING SLOW: A blob of colour of size {self.m00:.0f} pixels is in view at y-position: {self.cy:.0f} pixels.")
+                self.robot_controller.set_move_cmd(0.0, self.turn_vel_slow)
+            
+            self.robot_controller.publish()
+            self.rate.sleep()
 
 
 
