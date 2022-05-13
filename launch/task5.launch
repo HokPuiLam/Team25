@@ -1,0 +1,9 @@
+<launch>
+    <arg name="target_color" default="blue"/>
+    <node name="search_action_client" pkg="team25" type="search_client_task5.py" output="screen">
+    </node>
+
+    <node name="search_action_server" pkg="team25" type="search_server_task5.py" output="screen"
+    args="-colour $(arg target_colour)" />
+
+</launch>
