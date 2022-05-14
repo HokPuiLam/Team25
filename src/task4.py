@@ -106,6 +106,7 @@ class colour_search(object):
             
         self.m00 = m["m00"]
         self.cy = m["m10"] / (m["m00"] + 1e-5)
+        self.cz = m['m01'] / (m['m00'] + 1e-5)
 
         if self.m00 > self.m00_min:
             cv2.circle(crop_img, (int(self.cy), 200), 10, (0, 0, 255), 2)
@@ -358,12 +359,15 @@ class colour_search(object):
                 self.forward()
                 self.robot_controller.stop()
             else:
-                print("testing")
-                if self.m00 > self.m00_min:
+                #print("testing")
+                if self.m00 > self.m00_min and self.detected == False:
                     # blob detected
                     if self.cy >= 560-100 and self.cy <= 560+100:
                         if self.move_rate == 'slow':
-                            self.move_rate = 'stop'
+                            if int(self.cz) > 180 and int(self.cz) < 220:
+                                self.move_rate = 'stop'  
+                                self.find_target = True
+                                print("BEACON DETECTED: Beaconing initiated.")
                     else:
                         self.move_rate = 'slow'
                 else:
@@ -374,14 +378,22 @@ class colour_search(object):
                     # self.robot_controller.set_move_cmd(0.0, self.turn_vel_fast)
                     self.move_around()
                 elif self.move_rate == 'slow':
-                    print(f"MOVING SLOW: A blob of colour of size {self.m00:.0f} pixels is in view at y-position: {self.cy:.0f} pixels.")
-                    self.robot_controller.set_move_cmd(0.0, 0.1)
+                    if self.cy <= 560-100:
+                        self.robot_controller.set_move_cmd(0.1, 0.2)
+                        self.robot_controller.publish()
+                        print("slow left")
+                    elif self.cy > 560+100:
+                        self.robot_controller.set_move_cmd(0.1, -0.2)
+                        self.robot_controller.publish()
+                        print("slow right")
+                    #print(f"MOVING SLOW: A blob of colour of size {self.m00:.0f} pixels is in view at y-position: {self.cy:.0f} pixels.")
+                    #self.robot_controller.set_move_cmd(0.0, 0.1)
                 elif self.move_rate == 'stop' and self.stop_counter > 0:
                     print("stop")
                     self.robot_controller.set_move_cmd(0.0, 0.0)
-                else:
-                    print(f"MOVING SLOW: A blob of colour of size {self.m00:.0f} pixels is in view at y-position: {self.cy:.0f} pixels.")
-                    self.robot_controller.set_move_cmd(0.0, self.turn_vel_slow)
+                #else:
+                    #print(f"MOVING SLOW: A blob of colour of size {self.m00:.0f} pixels is in view at y-position: {self.cy:.0f} pixels.")
+                    #self.robot_controller.set_move_cmd(0.0, self.turn_vel_slow)
                 
                 self.robot_controller.publish()
                 self.rate.sleep()
