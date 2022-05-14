@@ -167,7 +167,7 @@ class colour_search(object):
         self.posx0 = self.tb3_odom.posx
         self.posy0 = self.tb3_odom.posy
 
-        print("The robot will start to move now...")
+        #print("The robot will start to move now...")
         # set the robot velocity:
         #while True:
             #front is clear
@@ -280,26 +280,40 @@ class colour_search(object):
                 #print(self.search)
                 break
 
-    def detected_beacon(self):
-        color_threshold = {
-            "Blue": [(115, 224, 100), (130, 255, 255)],
-            "Red": [(0, 185, 100), (10, 255, 255)],
-            "Green": [(25, 150, 100), (70, 255, 255)],
-            "Turquoise": [(75, 150, 100), (100, 255, 255)]
-        }
+    # def detected_beacon(self):
+    #     color_threshold = {
+    #         "Blue": [(115, 224, 100), (130, 255, 255)],
+    #         "Red": [(0, 185, 100), (10, 255, 255)],
+    #         "Green": [(25, 150, 100), (70, 255, 255)],
+    #         "Turquoise": [(75, 150, 100), (100, 255, 255)]
+    #     }
 
-        for colorname, (lower, upper) in color_threshold.items():
-            lower = np.array(lower)
-            upper = np.array(upper)
-            mask = cv2.inRange(self.hsv_img, lower, upper)
-            if mask.any():
-                print("TARGET DETECTED: Beaconing initiated.{}.".format (colorname))
-                self.detected == True
-                self.robot_controller.stop()
-                #print(self.detected)
-                return True
-                break
+    #     for colorname, (lower, upper) in color_threshold.items():
+    #         lower = np.array(lower)
+    #         upper = np.array(upper)
+    #         mask = cv2.inRange(self.hsv_img, lower, upper)
+    #         if mask.any():
+    #             print("TARGET DETECTED: Beaconing initiated.{}.".format (colorname))
+    #             self.detected == True
+    #             self.robot_controller.stop()
+    #             #print(self.detected)
+    #             return True
+    #             break
+    def move_beacon(self):
+                if self.cy <= 560-100:
+                    self.robot_controller.set_move_cmd(0.1, 0.2)
+                    self.robot_controller.publish()
+                    print("beacon slow left")
+                elif self.cy > 560+100:
+                    self.robot_controller.set_move_cmd(0.1, -0.2)
+                    self.robot_controller.publish()
+                    print("beacon slow right")
+                elif self.front_min < 0.3:
+                    self.robot_controller.stop()
+                    self.robot_controller.publish
+                    print('beacon stop')
 
+    
 
     def main(self):
         while not self.ctrl_c:
@@ -364,12 +378,17 @@ class colour_search(object):
                     # blob detected
                     if self.cy >= 560-100 and self.cy <= 560+100:
                         if self.move_rate == 'slow':
-                            if int(self.cz) > 180 and int(self.cz) < 220:
-                                self.move_rate = 'stop'  
-                                self.find_target = True
-                                print("BEACON DETECTED: Beaconing initiated.")
+                            if int(self.cz) > 140 and int(self.cz) < 220: 
+                                self.detected = True
+                                self.move_rate == 'beaconing'
+                                print("TARGET DETECTED: Beaconing initiated.")
+                                #self.shutdown_ops()
                     else:
+                        print('else slow')
                         self.move_rate = 'slow'
+                elif self.detected == True:
+                    #print('beacon')
+                    self.move_rate = 'beacon'
                 else:
                     self.move_rate = 'fast'
 
@@ -388,7 +407,10 @@ class colour_search(object):
                         print("slow right")
                     #print(f"MOVING SLOW: A blob of colour of size {self.m00:.0f} pixels is in view at y-position: {self.cy:.0f} pixels.")
                     #self.robot_controller.set_move_cmd(0.0, 0.1)
-                elif self.move_rate == 'stop' and self.stop_counter > 0:
+                elif self.move_rate == 'beacon':
+                    #print('detected moving')
+                    self.move_beacon()
+                elif self.move_rate == 'stop':
                     print("stop")
                     self.robot_controller.set_move_cmd(0.0, 0.0)
                 #else:
