@@ -1,9 +1,13 @@
 <launch>
-    <arg name="target_color" default="blue"/>
+    <arg name="target_colour" default="blue"/>
+    <node name="mapping_node" pkg="team25" type="mapping.py" output="screen"
+    />
     <node name="search_action_client" pkg="team25" type="search_client_task5.py" output="screen">
     </node>
 
     <node name="search_action_server" pkg="team25" type="search_server_task5.py" output="screen"
-    args="-colour $(arg target_colour)" />
+    args="-target_colour $(arg target_colour)" default="blue"/>
+
+    <include file="$(find turtlebot3_slam)/launch/turtlebot3_slam.launch"/>
 
 </launch>

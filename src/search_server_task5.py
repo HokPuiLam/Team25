@@ -15,6 +15,7 @@ from tb3 import Tb3Move, Tb3Odometry, Tb3LaserScan
 # Import some other useful Python Modules
 from math import sqrt, pow
 import numpy as np
+import time
 
 class SearchActionServer(object):
     feedback = SearchFeedback() 
@@ -42,19 +43,20 @@ class SearchActionServer(object):
         # Command-Line Interface:
         cli = argparse.ArgumentParser(description=f"Command-line interface for the 'argparse' node.")
         cli.add_argument("-target_colour", metavar="COL", type=String,
-            default="Blue", 
+            default="blue", 
             help="The name of a colour (for example)")
        
         # obtain the arguments passed to this node from the command-line:
         self.args = cli.parse_args(rospy.myargv()[1:])
         
+        self.target_colour = self.args.target_colour.data
         
     
     def scan_callback(self, scan_data):
-        f_left_arc = scan_data.ranges[0:27]
-        f_right_arc = scan_data.ranges[-27:]
-        right_arc = np.array(scan_data.ranges[320:350])
-        left_arc = np.array(scan_data.ranges[20:50])
+        f_left_arc = scan_data.ranges[0:25]
+        f_right_arc = scan_data.ranges[-25:]
+        right_arc = np.array(scan_data.ranges[320:340])
+        left_arc = np.array(scan_data.ranges[26:47])
         front_arc = np.array(f_left_arc[::-1] + f_right_arc[::-1])
         self.front_min = np.amin(front_arc)
         self.right_min = np.amin(right_arc)
@@ -106,14 +108,14 @@ class SearchActionServer(object):
                 #but right isn't clear
                 if self.right_min < goal.approach_distance and self.left_min > goal.approach_distance:
                     self.vel_controller.stop()
-                    self.vel_controller.set_move_cmd(0.26, 1)
+                    self.vel_controller.set_move_cmd(0.15, 1)
                     self.vel_controller.publish()
                     print("right not clear")
 
                 #but left isn't clear
                 elif self.right_min > goal.approach_distance and self.left_min < goal.approach_distance:
                     self.vel_controller.stop()
-                    self.vel_controller.set_move_cmd(0.26, 1)
+                    self.vel_controller.set_move_cmd(0.15, -1)
                     self.vel_controller.publish()
                     print("left not clear")
 
@@ -130,27 +132,27 @@ class SearchActionServer(object):
                     #and left side is closer to an obstacle, reverse and spin right
                     if self.right_min > self.left_min:
                         self.vel_controller.stop()
-                        self.vel_controller.set_move_cmd(-0.1, -1)
+                        self.vel_controller.set_move_cmd(0, -1)
                         self.vel_controller.publish()
                         print("front not clear")
                     #else, reverse and spin left
                     else:
                         self.vel_controller.stop()
-                        self.vel_controller.set_move_cmd(-0.1, 1)
+                        self.vel_controller.set_move_cmd(0, 1)
                         self.vel_controller.publish()
                         print("front not clear")
 
                 #but the left isn't clear, so spin right
                 elif self.right_min > goal.approach_distance and self.left_min < goal.approach_distance:
                     self.vel_controller.stop()
-                    self.vel_controller.set_move_cmd(0, -1)
+                    self.vel_controller.set_move_cmd(-0.05, -1)
                     self.vel_controller.publish()
                     print("front left not clear")
                 
                 #but the right isn't clear, so spin left
                 elif self.right_min < goal.approach_distance and self.left_min > goal.approach_distance:
                     self.vel_controller.stop()
-                    self.vel_controller.set_move_cmd(0, 1)
+                    self.vel_controller.set_move_cmd(-0.05, 1)
                     self.vel_controller.publish()
                     print("front right not clear")
 
@@ -159,32 +161,20 @@ class SearchActionServer(object):
                     #and left side is closer to an obstacle, spin right
                     if self.right_min > self.left_min:
                         self.vel_controller.stop()
-                        self.vel_controller.set_move_cmd(0, -1.82)
+                        self.vel_controller.set_move_cmd(-0.001, -1.82)
                         self.vel_controller.publish()
-                        print("not clear")
+
+                        print("not clear, sr")
                         
                     #and right side is closer to an obstacle, spin left
                     else:
                         self.vel_controller.stop()
-                        self.vel_controller.set_move_cmd(0, 1.82)
+                        self.vel_controller.set_move_cmd(-0.001, 1.82)
                         self.vel_controller.publish()
-                        print("not clear")
+                        print("not clear, sl")
             self.feedback.current_distance_travelled = sqrt(pow(self.posx0 - self.tb3_odom.posx, 2) + pow(self.posy0 - self.tb3_odom.posy, 2))
             self.actionserver.publish_feedback(self.feedback)
 
-            if (rospy.get_rostime().secs % 6):
-                # Command-Line Interface:
-                map_path = "../maps/task5_map"
-
-
-                launch = roslaunch.scriptapi.ROSLaunch()
-                launch.start()
-
-                print(f"Saving map at time: {rospy.get_time()}...")
-                node = roslaunch.core.Node(package="map_server",
-                                        node_type="map_saver",
-                                        args=f"-f {map_path}")
-                process = launch.launch(node)
 
 
 """         if success:

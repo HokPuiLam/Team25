@@ -101,7 +101,7 @@ class SearchActionServer(object):
                 #but left isn't clear
                 elif self.right_min > goal.approach_distance and self.left_min < goal.approach_distance:
                     self.vel_controller.stop()
-                    self.vel_controller.set_move_cmd(0.26, 1)
+                    self.vel_controller.set_move_cmd(0.26, -1)
                     self.vel_controller.publish()
                     print("left not clear")
 
