@@ -1,0 +1,5 @@
+<launch>
+    <arg name="target_colour" default="blue"/>
+    <node name="task44_node" pkg="team25" type="task4.py" output="screen"/>
+    
+</launch>
