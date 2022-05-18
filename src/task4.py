@@ -194,6 +194,7 @@ class colour_search(object):
                 self.robot_controller.set_move_cmd(0.15, 1)
                 self.robot_controller.publish()
                 print("right not clear")
+                
 
             #but left isn't clear
             elif self.right_min > 0.5 and self.left_min < 0.5:
@@ -305,28 +306,35 @@ class colour_search(object):
                 # if self.cy >= 560-100 and self.cy <= 560+100:
                 #     self.move_rate = 'fast'
                 #     print('searching')
-                if self.right_min > 0.5 and self.left_min < 0.5:
+                if self.front_min < 0.35:
                     self.robot_controller.stop()
-                    self.robot_controller.set_move_cmd(-0.05, -1)
-                    self.robot_controller.publish()
-                    print("beacon front left not clear")
-                
-                #but the right isn't clear, so spin left
+                    self.robot_controller.publish
+                    print('beacon stop')
                 elif self.right_min < 0.5 and self.left_min > 0.5:
                     self.robot_controller.stop()
-                    self.robot_controller.set_move_cmd(-0.05, 1)
+                    self.robot_controller.set_move_cmd(0.15, 1)
                     self.robot_controller.publish()
-                    print("beacon front right not clear")
+                    print("beacon right not clear")
+                    
+
+                #but left isn't clear
+                elif self.right_min > 0.5 and self.left_min < 0.5:
+                    self.robot_controller.stop()
+                    self.robot_controller.set_move_cmd(0.15, -1)
+                    self.robot_controller.publish()
+                    print("beacon left not clear")
                 elif self.cy <= 560-100:
                     self.robot_controller.set_move_cmd(0.1, 0.2)
                     self.robot_controller.publish()
                     print("beacon slow left")
-                    print(self.cz)
+                    print(self.m00)
+                    #print(self.cz)
                 elif self.cy > 560+100:
                     self.robot_controller.set_move_cmd(0.1, -0.2)
                     self.robot_controller.publish()
                     print("beacon slow right")
-                    print(self.cz)
+                    print(self.m00)
+                    #print(self.cz)
                 # elif self.right_min > 0.5 and self.left_min < 0.5:
                 #     self.robot_controller.stop()
                 #     self.robot_controller.set_move_cmd(-0.05, -1)
@@ -339,7 +347,7 @@ class colour_search(object):
                 #     self.robot_controller.set_move_cmd(-0.05, 1)
                 #     self.robot_controller.publish()
                 #     print("beacon front right not clear")
-                elif self.front_min < 0.3:
+                elif self.front_min < 0.35:
                     self.robot_controller.stop()
                     self.robot_controller.publish
                     print('beacon stop')
