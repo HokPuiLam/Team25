@@ -4,6 +4,7 @@ import roslaunch
 import rospy
 from pathlib import Path
 
+#Inspired by https://stackoverflow.com/questions/22947427/getting-home-directory-with-pathlib
 map_path = Path.home().joinpath("catkin_ws/src/Team25/maps/task5_map")
 
 rospy.init_node("map_getter", anonymous=True)
