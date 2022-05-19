@@ -82,7 +82,7 @@ class colour_search(object):
         
         height, width, _ = cv_img.shape
         crop_width = width - 800
-        crop_height = 400
+        crop_height = 310
         crop_x = int((width/2) - (crop_width/2))
         crop_y = int((height/2) - (crop_height/2)) + 200
 
@@ -266,7 +266,9 @@ class colour_search(object):
             "Blue": [(115, 224, 100), (130, 255, 255)],
             "Red": [(0, 185, 100), (10, 255, 255)],
             "Green": [(25, 150, 100), (70, 255, 255)],
-            "Turquoise": [(75, 150, 100), (100, 255, 255)]
+            "Turquoise": [(75, 150, 100), (100, 255, 255)],
+            "Purple": ([145, 190, 100], [155, 255, 255]),
+            "Yellow": ([28, 180, 100], [32, 255, 255])
         }
 
         for color, (lower, upper) in color_threshold.items():

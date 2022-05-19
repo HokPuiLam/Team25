@@ -96,7 +96,9 @@ class SearchActionServer(object):
             "blue": [(115, 224, 100), (130, 255, 255)],
             "red": [(0, 185, 100), (10, 255, 255)],
             "green": [(25, 150, 100), (70, 255, 255)],
-            "turquoise": [(75, 150, 100), (100, 255, 255)]
+            "turquoise": [(75, 150, 100), (100, 255, 255)],
+            "purple": ([145, 190, 100], [155, 255, 255]),
+            "yellow": ([28, 180, 100], [32, 255, 255])
         }
 
         for color, (lower, upper) in color_threshold.items():
