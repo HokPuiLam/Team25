@@ -306,7 +306,7 @@ class colour_search(object):
                 # if self.cy >= 560-100 and self.cy <= 560+100:
                 #     self.move_rate = 'fast'
                 #     print('searching')
-                if self.front_min < 0.35:
+                if self.front_min < 0.5:
                     self.robot_controller.stop()
                     self.robot_controller.publish
                     print('beacon stop')
