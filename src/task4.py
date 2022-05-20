@@ -55,7 +55,7 @@ class colour_search(object):
         self.m00 = 0
         self.m00_min = 100000
 
-        # Thresholds for ["Blue", "Red", "Green", "Turquoise"]
+      
         self.search = False
         self.detected = False
         self.color = ""
@@ -64,10 +64,6 @@ class colour_search(object):
         self.mask = np.zeros((1080,1920,1), np.uint8)
         self.hsv_img = np.zeros((1080,1920,3), np.uint8)
 
-        # self.mask = np.zeros((1080,1920,1), np.uint8)
-        # self.hsv_img = np.zeros((1080,1920,3), np.uint8)
-        # self.lower = [(115, 224, 100), (0, 185, 100), (25, 150, 100), (75, 150, 100)]
-        # self.upper = [(130, 255, 255), (10, 255, 255), (70, 255, 255), (100, 255, 255)]
 
     def shutdown_ops(self):
         self.robot_controller.stop()
@@ -90,14 +86,7 @@ class colour_search(object):
         hsv_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2HSV)
         self.hsv_img = hsv_img
 
-        # create a single mask to accommodate all four dectection colours:
-        # for i in range(4):
-        #     if i == 0:
-        #         mask = cv2.inRange(hsv_img, self.lower[i], self.upper[i])
-        #         # print("mask123")
-        #     else:
-        #         mask = mask + cv2.inRange(hsv_img, self.lower[i], self.upper[i])
-        #         # print("maskmasktest")
+
 
         if len(self.lower) > 0 and len(self.upper) > 0:
             self.mask = cv2.inRange(hsv_img, self.lower, self.upper)
@@ -115,20 +104,7 @@ class colour_search(object):
         cv2.imshow("cropped image", crop_img)
         cv2.waitKey(1)
 
-    # def rotate(self, degree, speed):
-    #     rospy.sleep(1)
-    #     time_cal = math.radians(degree) / speed
-    #     self.robot_controller.set_move_cmd(0.0, speed)    
-    #     self.robot_controller.publish()
-    #     time_cal = abs(time_cal)
-    #     rospy.sleep(time_cal)
-    #     self.robot_controller.stop()
 
-    # def go_foward(self):
-    #     self.robot_controller.set_move_cmd(0.2, 0)    
-    #     self.robot_controller.publish()
-    #     rospy.sleep(5)
-    #     self.robot_controller.stop()
     def scan_callback(self, scan_data):
         f_left_arc = scan_data.ranges[0:27]
         f_right_arc = scan_data.ranges[-27:]
@@ -168,15 +144,6 @@ class colour_search(object):
         self.posx0 = self.tb3_odom.posx
         self.posy0 = self.tb3_odom.posy
 
-        #print("The robot will start to move now...")
-        # set the robot velocity:
-        #while True:
-            #front is clear
-            #print(0.6000000238418579)
-            #print(self.color)
-            #self.init_color()
-            # if self.detected_beacon() == True:
-            #     break
         if self.front_min > 0.5:
             
             # #both sides are clear, wiggle for more responsiveness
@@ -259,9 +226,7 @@ class colour_search(object):
 
 
     def init_color(self):
-        # Thresholds for ["Blue", "Red", "Green", "Turquoise"]
-        # self.lower = [(115, 224, 100), (0, 185, 100), (25, 150, 100), (75, 150, 100)]
-        # self.upper = [(130, 255, 255), (10, 255, 255), (70, 255, 255), (100, 255, 255)]
+
         color_threshold = {
             "Blue": [(115, 224, 100), (130, 255, 255)],
             "Red": [(0, 185, 100), (10, 255, 255)],
@@ -285,25 +250,6 @@ class colour_search(object):
                 #print(self.search)
                 break
 
-    # def detected_beacon(self):
-    #     color_threshold = {
-    #         "Blue": [(115, 224, 100), (130, 255, 255)],
-    #         "Red": [(0, 185, 100), (10, 255, 255)],
-    #         "Green": [(25, 150, 100), (70, 255, 255)],
-    #         "Turquoise": [(75, 150, 100), (100, 255, 255)]
-    #     }
-
-    #     for colorname, (lower, upper) in color_threshold.items():
-    #         lower = np.array(lower)
-    #         upper = np.array(upper)
-    #         mask = cv2.inRange(self.hsv_img, lower, upper)
-    #         if mask.any():
-    #             print("TARGET DETECTED: Beaconing initiated.{}.".format (colorname))
-    #             self.detected == True
-    #             self.robot_controller.stop()
-    #             #print(self.detected)
-    #             return True
-    #             break
     def move_beacon(self):
                 # if self.cy >= 560-100 and self.cy <= 560+100:
                 #     self.move_rate = 'fast'
@@ -339,18 +285,6 @@ class colour_search(object):
                     #print("beacon slow right")
                     #print(self.m00)
                     #print(self.cz)
-                # elif self.right_min > 0.5 and self.left_min < 0.5:
-                #     self.robot_controller.stop()
-                #     self.robot_controller.set_move_cmd(-0.05, -1)
-                #     self.robot_controller.publish()
-                #     print("beacon front left not clear")
-                
-                # #but the right isn't clear, so spin left
-                # elif self.right_min < 0.5 and self.left_min > 0.5:
-                #     self.robot_controller.stop()
-                #     self.robot_controller.set_move_cmd(-0.05, 1)
-                #     self.robot_controller.publish()
-                #     print("beacon front right not clear")
                 elif self.front_min < 0.35:
                     self.robot_controller.stop()
                     self.robot_controller.publish
@@ -364,53 +298,7 @@ class colour_search(object):
     def main(self):
         while not self.ctrl_c:
             # if self.detected == True:
-            #         #print("stop")
-            #     print("detected")
-            #     self.robot_controller.stop()
-            #     self.shutdown_ops()
-            #     self.ctrl_c == True
-            # if self.search == False:
-            #     rospy.sleep(1)
-            #     self.rotate_right()
-            #     self.init_color()
-            #     self.rotate_left()
-            #     self.robot_controller.stop()
-            # if self.search == True:
-            #     #print("self turn true")
-            #     #print('fast')
-            #     self.move_around()
-            #     #self.ctrl_c = True
 
-
-
-
-
-
-
-
-
-            # if self.move_rate == 'fast':
-            #     self.move_around()
-            # elif self.move_rate == 'stop':
-            #     self.robot_controller.stop()
-            # if self.m00 > self.m00_min:
-            #     # blob detected
-            #     if self.cy >= 560-100 and self.cy <= 560+100:
-            #         if self.move_rate == "slow":
-            #             self.move_rate = "stop"
-            #             self.stop_counter = 20
-            #     else:
-            #         self.move_rate = "slow"
-            # else:
-            #     self.move_rate = "fast"
-
-
-
-
-
-
-            # if self.stop_counter > 0:
-            #     self.stop_counter -= 1
             if self.search == False:
                 rospy.sleep(1)
                 self.rotate_right()
@@ -430,8 +318,7 @@ class colour_search(object):
                                 print("TARGET DETECTED: Beaconing initiated.")
                                 #self.shutdown_ops()
                     else:
-                        #print('else slow')
-                        #print(self.cz)
+
                         self.move_rate = 'slow'
                 elif self.detected == True:
                     #print('beacon')
@@ -468,24 +355,6 @@ class colour_search(object):
                 self.rate.sleep()
 
 
-
-
-
-            # if self.move_rate == "fast":
-            #     print(f"MOVING FAST: I can't see anything at the moment (blob size = {self.m00:.0f}), scanning the area...")
-            #     self.robot_controller.set_move_cmd(0.0, self.turn_vel_fast)
-            # elif self.move_rate == "slow":
-            #     print(f"MOVING SLOW: A blob of colour of size {self.m00:.0f} pixels is in view at y-position: {self.cy:.0f} pixels.")
-            #     self.robot_controller.set_move_cmd(0.0, self.turn_vel_slow)
-            # elif self.move_rate == "stop" and self.stop_counter > 0:
-            #     print(f"STOPPED: The blob of colour is now dead-ahead at y-position {self.cy:.0f} pixels... Counting down: {self.stop_counter}")
-            #     self.robot_controller.set_move_cmd(0.0, 0.0)
-            # else:
-            #     print(f"MOVING SLOW: A blob of colour of size {self.m00:.0f} pixels is in view at y-position: {self.cy:.0f} pixels.")
-            #     self.robot_controller.set_move_cmd(0.0, self.turn_vel_slow)
-            
-            # self.robot_controller.publish()
-            # self.rate.sleep()
             
 if __name__ == "__main__":
     search_instance = colour_search()
