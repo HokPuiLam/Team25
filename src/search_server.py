@@ -41,12 +41,16 @@ class SearchActionServer(object):
     def scan_callback(self, scan_data):
         f_left_arc = scan_data.ranges[0:27]
         f_right_arc = scan_data.ranges[-27:]
+        wheel_left_arc = scan_data.ranges[35:80]
+        wheel_right_arc = scan_data.ranges[255:300]
         right_arc = np.array(scan_data.ranges[320:350])
         left_arc = np.array(scan_data.ranges[20:50])
         front_arc = np.array(f_left_arc[::-1] + f_right_arc[::-1])
         self.front_min = np.amin(front_arc)
         self.right_min = np.amin(right_arc)
         self.left_min = np.amin(left_arc)
+        self.left_w_min = np.amin(wheel_left_arc)
+        self.right_w_min = np.amin(wheel_right_arc)
 
     
     def action_server_launcher(self, goal: SearchGoal):
@@ -67,49 +71,46 @@ class SearchActionServer(object):
             self.actionserver.set_aborted()
             return
 
-        print(f"Request to move at {goal.fwd_velocity:.3f}m/s "
-                f"and stop {goal.approach_distance:.2f}m "
-                f"infront of any obstacles")
+        #print(f"Request to move at {goal.fwd_velocity:.3f}m/s "
+                #f"and stop {goal.approach_distance:.2f}m "
+                #f"infront of any obstacles")
 
         # Get the current robot odometry:
         self.posx0 = self.tb3_odom.posx
         self.posy0 = self.tb3_odom.posy
 
-        print("The robot will start to move now...")
+        #print("The robot will start to move now...")
         # set the robot velocity:
         while True:
             #front is clear
-            print(goal.approach_distance)
+            #print(goal.approach_distance)
             if self.front_min > goal.approach_distance:
                 
                 # #both sides are clear, wiggle for more responsiveness
                 if self.right_min > goal.approach_distance and self.left_min > goal.approach_distance:
-                    self.vel_controller.set_move_cmd(0.26, 0.70)
+                    self.vel_controller.set_move_cmd(0.26, 0.6)
                     self.vel_controller.publish()
-                    self.vel_controller.stop()
-                    self.vel_controller.set_move_cmd(0.26, -0.70)
+                    self.vel_controller.set_move_cmd(0.26, -0.6)
                     self.vel_controller.publish()
-                    print("all clear")
+                    #print("all clear")
 
                 #but right isn't clear
-                if self.right_min < goal.approach_distance and self.left_min > goal.approach_distance:
-                    self.vel_controller.stop()
+                elif self.right_min < goal.approach_distance and self.left_min > goal.approach_distance:
                     self.vel_controller.set_move_cmd(0.26, 1)
                     self.vel_controller.publish()
-                    print("right not clear")
+                    #print("right not clear")
 
                 #but left isn't clear
                 elif self.right_min > goal.approach_distance and self.left_min < goal.approach_distance:
-                    self.vel_controller.stop()
                     self.vel_controller.set_move_cmd(0.26, -1)
                     self.vel_controller.publish()
-                    print("left not clear")
+                    #print("left not clear")
 
                 #both sides are not clear
                 else:
                     self.vel_controller.set_move_cmd(0.26, 0)
                     self.vel_controller.publish()
-                    print("only front clear")
+                    #print("only front clear")
 
             #front is not clear
             else:
@@ -117,43 +118,37 @@ class SearchActionServer(object):
                 if self.right_min > goal.approach_distance and self.left_min > goal.approach_distance:
                     #and left side is closer to an obstacle, reverse and spin right
                     if self.right_min > self.left_min:
-                        self.vel_controller.stop()
                         self.vel_controller.set_move_cmd(-0.1, -1)
                         self.vel_controller.publish()
-                        print("front not clear")
+                        #print("front not clear")
                     #else, reverse and spin left
                     else:
-                        self.vel_controller.stop()
                         self.vel_controller.set_move_cmd(-0.1, 1)
                         self.vel_controller.publish()
-                        print("front not clear")
+                        #print("front not clear")
 
                 #but the left isn't clear, so spin right
                 elif self.right_min > goal.approach_distance and self.left_min < goal.approach_distance:
-                    self.vel_controller.stop()
                     self.vel_controller.set_move_cmd(0, -1)
                     self.vel_controller.publish()
-                    print("front left not clear")
+                    #print("front left not clear")
                 
                 #but the right isn't clear, so spin left
                 elif self.right_min < goal.approach_distance and self.left_min > goal.approach_distance:
-                    self.vel_controller.stop()
                     self.vel_controller.set_move_cmd(0, 1)
                     self.vel_controller.publish()
-                    print("front right not clear")
+                    #print("front right not clear")
 
                 #but no sides are clear
                 else:
                     #and left side is closer to an obstacle, spin right
                     if self.right_min > self.left_min:
-                        self.vel_controller.stop()
                         self.vel_controller.set_move_cmd(0, -1.82)
                         self.vel_controller.publish()
                         print("not clear")
                         
                     #and right side is closer to an obstacle, spin left
                     else:
-                        self.vel_controller.stop()
                         self.vel_controller.set_move_cmd(0, 1.82)
                         self.vel_controller.publish()
                         print("not clear")

@@ -28,9 +28,7 @@ class action_client(object):
 
     def shutdown_ops(self):
         if not self.action_complete:
-            rospy.logwarn("Received a shutdown request. Cancelling Goal...")
             self.client.cancel_goal()
-            rospy.logwarn("Goal Cancelled")
             
     def send_goal(self, velocity, approach):
         self.goal.fwd_velocity = velocity
@@ -40,13 +38,11 @@ class action_client(object):
         self.client.send_goal(self.goal, feedback_cb=self.feedback_callback)
 
     def main(self):
-        self.send_goal(velocity = 0.19, approach = 0.45)
+        self.send_goal(velocity = 0.19, approach = 0.40)
         prempt = False
         while self.client.get_state() < 2:
             if self.distance >= 2000: #tweak
-                rospy.logwarn("Cancelling goal now...")
                 self.client.cancel_goal()
-                rospy.logwarn("Goal Cancelled")
                 prempt = True
                 break
 

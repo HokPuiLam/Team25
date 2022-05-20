@@ -29,7 +29,7 @@ class task3():
         self.vel_cmd.linear.x = 0.0 # m/s
         self.vel_cmd.angular.z = 0.0 # rad/s
 
-        print("stopping the robot")
+        # print("stopping the robot")
 
         # publish to the /cmd_vel topic to make the robot stop
         self.pub.publish(self.vel_cmd)
@@ -54,26 +54,26 @@ class task3():
             if (min_front < 0.1):
                 self.vel_cmd.angular.z = 1.3
                 self.vel_cmd.linear.x = -0.1
-                print("reversing")
+                # print("reversing")
             elif (min_front < 0.4):
                 self.vel_cmd.angular.z = 1.3
                 self.vel_cmd.linear.x = 0.00
-                print("reorienting")
+                # print("reorienting")
                        
             elif (min_right > 0.33 and min_right < 0.43 and min_front >= 0.4):
                 self.vel_cmd.angular.z = 0
                 self.vel_cmd.linear.x = 0.26
-                print("forward")
+                # print("forward")
 
             elif(min_right >= 0.43 and min_front >= 0.4):
                 self.vel_cmd.angular.z = -0.90
                 self.vel_cmd.linear.x = 0.26
-                print("right")
+                # print("right")
             
             elif(min_right <= 0.33 and min_front >= 0.4):
                 self.vel_cmd.angular.z = 0.90
                 self.vel_cmd.linear.x = 0.26
-                print("left")
+                # print("left")
 
             
             self.pub.publish(self.vel_cmd)

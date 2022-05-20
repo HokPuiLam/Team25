@@ -93,12 +93,12 @@ class SearchActionServer(object):
         # self.lower = [(115, 224, 100), (0, 185, 100), (25, 150, 100), (75, 150, 100)]
         # self.upper = [(130, 255, 255), (10, 255, 255), (70, 255, 255), (100, 255, 255)]
         color_threshold = {
-            "blue": [(115, 224, 100), (130, 255, 255)],
-            "red": [(0, 185, 100), (10, 255, 255)],
-            "green": [(25, 150, 100), (70, 255, 255)],
+            "blue": [(97, 62, 100), (103, 256, 255)],
+            "red": [(145, 80, 100), (180, 247, 255)],
+            "green": [(81, 60, 100), (101, 256, 255)],
             "turquoise": [(75, 150, 100), (100, 255, 255)],
             "purple": ([145, 190, 100], [155, 255, 255]),
-            "yellow": ([28, 180, 100], [32, 255, 255])
+            "yellow": ([23, 102, 100], [28, 176, 255])
         }
 
         for color, (lower, upper) in color_threshold.items():
@@ -206,25 +206,25 @@ class SearchActionServer(object):
                     self.vel_controller.publish()
                     self.vel_controller.set_move_cmd(0.22, -0.30)
                     self.vel_controller.publish()
-                    print("all clear")
+                    # print("all clear")
 
                 #but right isn't clear
                 elif self.right_min < goal.approach_distance and self.left_min > goal.approach_distance:
                     self.vel_controller.set_move_cmd(0.15, 1)
                     self.vel_controller.publish()
-                    print("right not clear")
+                    # print("right not clear")
 
                 #but left isn't clear
                 elif self.right_min > goal.approach_distance and self.left_min < goal.approach_distance:
                     self.vel_controller.set_move_cmd(0.15, -1)
                     self.vel_controller.publish()
-                    print("left not clear")
+                    # print("left not clear")
 
                 #both sides are not clear
                 else:
                     self.vel_controller.set_move_cmd(0.26, 0)
                     self.vel_controller.publish()
-                    print("only front clear")
+                    # print("only front clear")
 
             #front is not clear
             else:
@@ -234,24 +234,24 @@ class SearchActionServer(object):
                     if self.right_min > self.left_min:
                         self.vel_controller.set_move_cmd(0, -1.82)
                         self.vel_controller.publish()
-                        print("front not clear")
+                        # print("front not clear")
                     #else, reverse and spin left
                     else:
                         self.vel_controller.set_move_cmd(0, 1.82)
                         self.vel_controller.publish()
-                        print("front not clear")
+                        # print("front not clear")
 
                 #but the left isn't clear, so spin right
                 elif self.right_min > goal.approach_distance and self.left_min < goal.approach_distance:
                     self.vel_controller.set_move_cmd(-0.05, -1)
                     self.vel_controller.publish()
-                    print("front left not clear")
+                    # print("front left not clear")
                 
                 #but the right isn't clear, so spin left
                 elif self.right_min < goal.approach_distance and self.left_min > goal.approach_distance:
                     self.vel_controller.set_move_cmd(-0.05, 1)
                     self.vel_controller.publish()
-                    print("front right not clear")
+                    # print("front right not clear")
 
                 #but no sides are clear
                 else:
@@ -260,13 +260,13 @@ class SearchActionServer(object):
                         self.vel_controller.set_move_cmd(-0.001, -1.82)
                         self.vel_controller.publish()
 
-                        print("not clear, sr")
+                        # print("not clear, sr")
                         
                     #and right side is closer to an obstacle, spin left
                     else:
                         self.vel_controller.set_move_cmd(-0.001, 1.82)
                         self.vel_controller.publish()
-                        print("not clear, sl")
+                        # print("not clear, sl")
             self.feedback.current_distance_travelled = sqrt(pow(self.posx0 - self.tb3_odom.posx, 2) + pow(self.posy0 - self.tb3_odom.posy, 2))
             self.actionserver.publish_feedback(self.feedback)
 
